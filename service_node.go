@@ -1,8 +1,8 @@
 /**
- * TODO:文件描述
+ * grpc服务节点信息
  *
  * @title service_node
- * @projectName etcd
+ * @projectName discovery
  * @author niuk
  * @date 2022/8/25 16:40
  */

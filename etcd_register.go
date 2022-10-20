@@ -1,8 +1,8 @@
 /**
- * TODO:文件描述
+ * grpc etcd注册器
  *
- * @title etcdRegisterImpl
- * @projectName etcd
+ * @title etcd_register
+ * @projectName discovery
  * @author niuk
  * @date 2022/8/25 16:35
  */

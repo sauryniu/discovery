@@ -1,8 +1,8 @@
 /**
- * TODO:文件描述
+ * 注册器接口
  *
  * @title Register
- * @projectName etcd
+ * @projectName discovery
  * @author niuk
  * @date 2022/8/25 16:26
  */

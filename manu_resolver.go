@@ -1,8 +1,8 @@
 /**
- * TODO:文件描述
+ * grpc解析器
  *
  * @title manu_resolver
- * @projectName rpcClient
+ * @projectName discovery
  * @author niuk
  * @date 2022/9/7 11:02
  */

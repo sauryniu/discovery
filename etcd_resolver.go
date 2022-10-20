@@ -1,8 +1,8 @@
 /**
- * TODO:文件描述
+ * grpc etcd解析器
  *
  * @title etcd_resolver
- * @projectName etcd
+ * @projectName discovery
  * @author niuk
  * @date 2022/8/25 19:05
  */
@@ -113,14 +113,14 @@ func (e *etcdResolverBuilder) syncAll() error {
 			cancel()
 			return err
 		}
-		serverNodes := make([]ServiceNode, 0, len(rsp.Kvs))
+		serviceNodes := make([]ServiceNode, 0, len(rsp.Kvs))
 		for _, element := range rsp.Kvs {
 			serviceNode := ServiceNode{}
 			_ = json.Unmarshal(element.Value, &serviceNode)
-			serverNodes = append(serverNodes, serviceNode)
+			serviceNodes = append(serviceNodes, serviceNode)
 		}
-		if len(serverNodes) > 0 {
-			e.updateServerNode(node.Name, serverNodes)
+		if len(serviceNodes) > 0 {
+			e.updateServerNode(node.Name, serviceNodes)
 		}
 		cancel()
 	}

@@ -1,8 +1,8 @@
 /**
- * TODO:文件描述
+ * 解析器接口
  *
  * @title resolver
- * @projectName etcd
+ * @projectName discovery
  * @author niuk
  * @date 2022/8/25 19:04
  */
