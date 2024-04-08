@@ -7,11 +7,12 @@
  * @date 2022/8/25 16:35
  */
 
-package discovery
+package etcd
 
 import (
 	"context"
 	"encoding/json"
+	"github.com/sauryniu/discovery"
 	"github.com/sirupsen/logrus"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"time"
@@ -20,7 +21,7 @@ import (
 const defaultTTL = 30
 const defaultDialTimeout = 30
 
-type etcdRegisterImpl struct {
+type RegisterImpl struct {
 	etcdAddrs   []string
 	dialTimeOut time.Duration
 	leasesId    clientv3.LeaseID
@@ -28,12 +29,12 @@ type etcdRegisterImpl struct {
 	log           *logrus.Logger
 	ttl           int64
 	cli           *clientv3.Client
-	node          ServiceNode
+	node          discovery.ServiceNode
 	keepAliveChan <-chan *clientv3.LeaseKeepAliveResponse
 	closeChan     chan struct{}
 }
 
-func (e *etcdRegisterImpl) Register(node ServiceNode, option ...func(r Register)) error {
+func (e *RegisterImpl) Register(node discovery.ServiceNode, option ...func(r discovery.Register)) error {
 	var err error
 	if e.cli, err = clientv3.New(clientv3.Config{
 		Endpoints:   e.etcdAddrs,
@@ -56,11 +57,11 @@ func (e *etcdRegisterImpl) Register(node ServiceNode, option ...func(r Register)
 	return nil
 }
 
-func (e *etcdRegisterImpl) Unregister() {
+func (e *RegisterImpl) Unregister() {
 	e.closeChan <- struct{}{}
 }
 
-func (e *etcdRegisterImpl) register() error {
+func (e *RegisterImpl) register() error {
 	ctx, cancel := context.WithTimeout(context.Background(), e.dialTimeOut)
 	defer cancel()
 	rsp, err := e.cli.Grant(ctx, e.ttl)
@@ -84,7 +85,7 @@ func (e *etcdRegisterImpl) register() error {
 	return err
 }
 
-func (e *etcdRegisterImpl) keepAlive() {
+func (e *RegisterImpl) keepAlive() {
 	ticker := time.NewTicker(time.Second * time.Duration(e.ttl))
 
 	for {
@@ -111,7 +112,7 @@ func (e *etcdRegisterImpl) keepAlive() {
 	}
 }
 
-func (e *etcdRegisterImpl) unregister() error {
+func (e *RegisterImpl) unregister() error {
 	_, err := e.cli.Delete(context.Background(), e.node.BuildPath())
 	defer func(cli *clientv3.Client) {
 		err := cli.Close()
@@ -122,20 +123,20 @@ func (e *etcdRegisterImpl) unregister() error {
 	return err
 }
 
-func (e *etcdRegisterImpl) setTTL(ttl time.Duration) {
+func (e *RegisterImpl) SetTTL(ttl time.Duration) {
 	e.ttl = int64(ttl / time.Second)
 }
 
-func (e *etcdRegisterImpl) setDialTimeout(timeout time.Duration) {
+func (e *RegisterImpl) SetDialTimeout(timeout time.Duration) {
 	e.dialTimeOut = timeout
 }
 
-func (e *etcdRegisterImpl) setLogger(logger *logrus.Logger) {
+func (e *RegisterImpl) SetLogger(logger *logrus.Logger) {
 	e.log = logger
 }
 
-func newEtcdRegisterImpl(registerAddrs []string, option ...func(register Register)) *etcdRegisterImpl {
-	e := &etcdRegisterImpl{
+func NewRegisterImpl(registerAddrs []string, option ...func(register discovery.Register)) *RegisterImpl {
+	e := &RegisterImpl{
 		etcdAddrs:   registerAddrs,
 		dialTimeOut: defaultDialTimeout * time.Second,
 		ttl:         int64(defaultTTL),

@@ -40,7 +40,7 @@ func (s ServiceNode) BuildPrefix() string {
 	return fmt.Sprintf("/%s/%s", s.transName(), s.Version)
 }
 
-func parseKeyToAddr(key string) (string, error) {
+func ParseKeyToAddr(key string) (string, error) {
 	index := strings.LastIndex(key, "/")
 	if index < 0 || !strings.Contains(key[index:], ":") {
 		return "", errors.New("key format error")
