@@ -9,16 +9,11 @@
 
 package discovery
 
-import (
-	"github.com/sirupsen/logrus"
-	"time"
-)
-
 type Register interface {
-	Register(node ServiceNode, ttl time.Duration) error
+	Register(node ServiceNode, option ...func(r Register)) error
 	Unregister()
 }
 
-func NewRegister(registerAddrs []string, dialTimeOUT time.Duration, logger *logrus.Logger) Register {
-	return newEtcdRegisterImpl(registerAddrs, dialTimeOUT, logger)
+func NewRegister(registerAddrs []string, option ...func(register Register)) Register {
+	return newEtcdRegisterImpl(registerAddrs, option...)
 }

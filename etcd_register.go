@@ -17,6 +17,9 @@ import (
 	"time"
 )
 
+const defaultTTL = 30
+const defaultDialTimeout = 30
+
 type etcdRegisterImpl struct {
 	etcdAddrs   []string
 	dialTimeOut time.Duration
@@ -30,7 +33,7 @@ type etcdRegisterImpl struct {
 	closeChan     chan struct{}
 }
 
-func (e *etcdRegisterImpl) Register(node ServiceNode, ttl time.Duration) error {
+func (e *etcdRegisterImpl) Register(node ServiceNode, option ...func(r Register)) error {
 	var err error
 	if e.cli, err = clientv3.New(clientv3.Config{
 		Endpoints:   e.etcdAddrs,
@@ -39,8 +42,11 @@ func (e *etcdRegisterImpl) Register(node ServiceNode, ttl time.Duration) error {
 		return err
 	}
 	e.node = node
-	e.ttl = int64(ttl / time.Second)
 	e.closeChan = make(chan struct{})
+
+	for i := range option {
+		option[i](e)
+	}
 
 	if err = e.register(); err != nil {
 		return err
@@ -116,10 +122,27 @@ func (e *etcdRegisterImpl) unregister() error {
 	return err
 }
 
-func newEtcdRegisterImpl(registerAddrs []string, dialTimeOUT time.Duration, logger *logrus.Logger) *etcdRegisterImpl {
-	return &etcdRegisterImpl{
+func (e *etcdRegisterImpl) setTTL(ttl time.Duration) {
+	e.ttl = int64(ttl / time.Second)
+}
+
+func (e *etcdRegisterImpl) setDialTimeout(timeout time.Duration) {
+	e.dialTimeOut = timeout
+}
+
+func (e *etcdRegisterImpl) setLogger(logger *logrus.Logger) {
+	e.log = logger
+}
+
+func newEtcdRegisterImpl(registerAddrs []string, option ...func(register Register)) *etcdRegisterImpl {
+	e := &etcdRegisterImpl{
 		etcdAddrs:   registerAddrs,
-		dialTimeOut: dialTimeOUT,
-		log:         logger,
+		dialTimeOut: defaultDialTimeout * time.Second,
+		ttl:         int64(defaultTTL),
+		log:         logrus.New(),
 	}
+	for i := range option {
+		option[i](e)
+	}
+	return e
 }

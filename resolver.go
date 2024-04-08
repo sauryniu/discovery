@@ -9,16 +9,11 @@
 
 package discovery
 
-import (
-	"github.com/sirupsen/logrus"
-	"time"
-)
-
 type Resolver interface {
 	Start(node []ServiceNode) error
 	getServiceNodes(host string) []ServiceNode
 }
 
-func NewResolver(registerAddrs []string, dialTimeOUT time.Duration, logger *logrus.Logger) Resolver {
-	return newEtcdResolver(registerAddrs, dialTimeOUT, logger)
+func NewResolver(registerAddrs []string, option ...func(resolver Resolver)) Resolver {
+	return newEtcdResolver(registerAddrs, option...)
 }

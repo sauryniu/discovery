@@ -34,6 +34,7 @@ type etcdResolverBuilder struct {
 	closeChan chan struct{}
 
 	serviceNodes map[string][]ServiceNode
+	mru          sync.RWMutex
 	mr           map[string]*manuResolver
 }
 
@@ -43,7 +44,7 @@ func (e *etcdResolverBuilder) Build(target resolver.Target, cc resolver.ClientCo
 		cc:     cc,
 		r:      e,
 	}
-	e.mr[target.URL.Host] = m
+	e.setManuResolver(target.URL.Host, m)
 	m.ResolveNow(resolver.ResolveNowOptions{})
 	return m, nil
 }
@@ -71,6 +72,14 @@ func (e *etcdResolverBuilder) Start(node []ServiceNode) error {
 
 	go e.watch()
 	return nil
+}
+
+func (e *etcdResolverBuilder) setDialTimeout(timeout time.Duration) {
+	e.dialTimeOut = timeout
+}
+
+func (e *etcdResolverBuilder) setLogger(logger *logrus.Logger) {
+	e.log = logger
 }
 
 func (e *etcdResolverBuilder) getServiceNodes(name string) []ServiceNode {
@@ -128,6 +137,25 @@ func (e *etcdResolverBuilder) syncAll() error {
 	return nil
 }
 
+func (e *etcdResolverBuilder) setManuResolver(host string, m *manuResolver) {
+	e.mru.Lock()
+	defer func() {
+		_ = e.mru.Unlock
+	}()
+	e.mr[host] = m
+}
+
+func (e *etcdResolverBuilder) getManuResolver(host string) (*manuResolver, bool) {
+	e.mru.RLock()
+	defer func() {
+		_ = e.mru.RUnlock
+	}()
+	if m, ok := e.mr[host]; ok {
+		return m, ok
+	}
+	return nil, false
+}
+
 func (e *etcdResolverBuilder) watch() {
 	for _, node := range e.nodes {
 		go func(n ServiceNode) {
@@ -142,7 +170,7 @@ func (e *etcdResolverBuilder) watch() {
 							serviceNode := ServiceNode{}
 							_ = json.Unmarshal(event.Kv.Value, &serviceNode)
 							e.addAddr(n.Name, serviceNode)
-							if r, ok := e.mr[n.Name]; ok {
+							if r, ok := e.getManuResolver(n.Name); ok {
 								r.ResolveNow(resolver.ResolveNowOptions{})
 							}
 						case clientv3.EventTypeDelete:
@@ -152,14 +180,14 @@ func (e *etcdResolverBuilder) watch() {
 								continue
 							}
 							e.removeServerNode(n.Name, addr)
-							if r, ok := e.mr[n.Name]; ok {
+							if r, ok := e.getManuResolver(n.Name); ok {
 								r.ResolveNow(resolver.ResolveNowOptions{})
 							}
 						}
 					}
 				case <-ticker.C:
 					_ = e.syncAll()
-					if r, ok := e.mr[n.Name]; ok {
+					if r, ok := e.getManuResolver(n.Name); ok {
 						r.ResolveNow(resolver.ResolveNowOptions{})
 					}
 				case <-e.closeChan:
@@ -171,13 +199,18 @@ func (e *etcdResolverBuilder) watch() {
 	}
 }
 
-func newEtcdResolver(registerAddrs []string, dialTimeOUT time.Duration, logger *logrus.Logger) *etcdResolverBuilder {
-	return &etcdResolverBuilder{
+func newEtcdResolver(registerAddrs []string, option ...func(resolver Resolver)) *etcdResolverBuilder {
+	e := &etcdResolverBuilder{
 		etcdAddrs:    registerAddrs,
-		dialTimeOut:  dialTimeOUT,
-		log:          logger,
+		dialTimeOut:  defaultDialTimeout,
+		log:          logrus.New(),
 		closeChan:    make(chan struct{}),
 		serviceNodes: make(map[string][]ServiceNode),
 		mr:           make(map[string]*manuResolver),
 	}
+	for i := range option {
+		option[i](e)
+	}
+
+	return e
 }
