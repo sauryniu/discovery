@@ -10,7 +10,6 @@
 package discovery
 
 import (
-	"github.com/sauryniu/discovery/etcd"
 	"github.com/sirupsen/logrus"
 	"time"
 )
@@ -18,8 +17,8 @@ import (
 func RegisterWithTTL(ttl time.Duration) func(r Register) {
 	return func(r Register) {
 		switch r.(type) {
-		case *etcd.RegisterImpl:
-			r.(*etcd.RegisterImpl).SetTTL(ttl)
+		case *etcdRegisterImpl:
+			r.(*etcdRegisterImpl).SetTTL(ttl)
 		}
 	}
 }
@@ -27,8 +26,8 @@ func RegisterWithTTL(ttl time.Duration) func(r Register) {
 func RegisterWithDialTimeout(timeout time.Duration) func(r Register) {
 	return func(r Register) {
 		switch r.(type) {
-		case *etcd.RegisterImpl:
-			r.(*etcd.RegisterImpl).SetDialTimeout(timeout)
+		case *etcdRegisterImpl:
+			r.(*etcdRegisterImpl).SetDialTimeout(timeout)
 		}
 	}
 }
@@ -36,8 +35,8 @@ func RegisterWithDialTimeout(timeout time.Duration) func(r Register) {
 func RegisterWithLogger(logger *logrus.Logger) func(r Register) {
 	return func(r Register) {
 		switch r.(type) {
-		case *etcd.RegisterImpl:
-			r.(*etcd.RegisterImpl).SetLogger(logger)
+		case *etcdRegisterImpl:
+			r.(*etcdRegisterImpl).SetLogger(logger)
 		}
 	}
 }
@@ -45,8 +44,8 @@ func RegisterWithLogger(logger *logrus.Logger) func(r Register) {
 func ResolverWithDialTimeout(timeout time.Duration) func(r Resolver) {
 	return func(r Resolver) {
 		switch r.(type) {
-		case *etcd.ResolverBuilder:
-			r.(*etcd.ResolverBuilder).SetDialTimeout(timeout)
+		case *etcdResolverBuilder:
+			r.(*etcdResolverBuilder).SetDialTimeout(timeout)
 		}
 	}
 }
@@ -54,8 +53,8 @@ func ResolverWithDialTimeout(timeout time.Duration) func(r Resolver) {
 func ResolverWithLogger(logger *logrus.Logger) func(r Resolver) {
 	return func(r Resolver) {
 		switch r.(type) {
-		case *etcd.ResolverBuilder:
-			r.(*etcd.ResolverBuilder).SetLogger(logger)
+		case *etcdResolverBuilder:
+			r.(*etcdResolverBuilder).SetLogger(logger)
 		}
 	}
 }

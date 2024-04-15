@@ -9,13 +9,11 @@
 
 package discovery
 
-import "github.com/sauryniu/discovery/etcd"
-
 type Resolver interface {
 	Start(node []ServiceNode) error
 	GetServiceNodes(host string) []ServiceNode
 }
 
 func NewResolver(registerAddrs []string, option ...func(resolver Resolver)) Resolver {
-	return etcd.NewResolver(registerAddrs, option...)
+	return newEtcdResolverImpl(registerAddrs, option...)
 }

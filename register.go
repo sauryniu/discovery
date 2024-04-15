@@ -9,13 +9,11 @@
 
 package discovery
 
-import "github.com/sauryniu/discovery/etcd"
-
 type Register interface {
 	Register(node ServiceNode, option ...func(r Register)) error
 	Unregister()
 }
 
 func NewRegister(registerAddrs []string, option ...func(register Register)) Register {
-	return etcd.NewRegisterImpl(registerAddrs, option...)
+	return newEtcdRegisterImpl(registerAddrs, option...)
 }
