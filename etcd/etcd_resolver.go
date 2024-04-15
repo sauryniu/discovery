@@ -140,17 +140,13 @@ func (e *ResolverBuilder) syncAll() error {
 
 func (e *ResolverBuilder) setManuResolver(host string, m *discovery.ManuResolver) {
 	e.mru.Lock()
-	defer func() {
-		_ = e.mru.Unlock
-	}()
+	defer e.mru.Unlock()
 	e.mr[host] = m
 }
 
 func (e *ResolverBuilder) getManuResolver(host string) (*discovery.ManuResolver, bool) {
 	e.mru.RLock()
-	defer func() {
-		_ = e.mru.RUnlock
-	}()
+	defer e.mru.RUnlock()
 	if m, ok := e.mr[host]; ok {
 		return m, ok
 	}
