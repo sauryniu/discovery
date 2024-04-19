@@ -1,11 +1,12 @@
 module github.com/sauryniu/discovery
 
-go 1.19
+go 1.21.0
 
 require (
+	github.com/antonfisher/nested-logrus-formatter v1.3.1
 	github.com/sirupsen/logrus v1.9.3
 	go.etcd.io/etcd/client/v3 v3.5.13
-	google.golang.org/grpc v1.63.0
+	google.golang.org/grpc v1.63.2
 )
 
 require (
