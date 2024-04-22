@@ -1,7 +1,7 @@
 /**
  * TODO:文件描述
  *
- * @title etcdRegister
+ * @title etcd_resolver
  * @projectName grpcDemo
  * @author niuk
  * @date 2024/4/18 13:56
